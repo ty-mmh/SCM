@@ -18,12 +18,12 @@
 
 | ID | 不変条件 | v0.1での扱い | 対応 | 判定 |
 |---:|---|---|---|---|
-| I1 | 個体停止で任務来歴を失わない | 動的測定 | C1、C3、C5 | 測定 |
-| I2 | 共有情報には出所がある | 動的測定 | C2、C3 | 測定 |
-| I3 | 他個体の経験を自己経験として偽装しない | 構造化出力境界まで測定 | C2 | 限定測定 |
+| I1 | 個体停止で任務来歴と系の物語を失わない | 動的測定 | C1、C3、C5 | 測定 |
+| I2 | 記録と記憶には出所・形成個体がある | 動的測定 | C2、C3 | 測定 |
+| I3 | 他個体の経験・記憶を自己経験として偽装しない | 構造化出力境界まで測定 | C2 | 限定測定 |
 | I4 | 上位統制は局所安全判断を迂回できない | Coordinator模擬境界で測定 | C4 | 限定測定 |
 | I5 | 個体は不適切な任務を拒否できる | 動的測定 | C4 | 測定 |
-| I6 | 物語は記録を上書きできない | 読み取り専用Projection | S1 | 構造保証 |
+| I6 | 物語は記録と個体記憶を上書きできない | 読み取り専用Projection | S1 | 構造保証 |
 | I7 | 更新は段階展開され、巻き戻せる | 対象外 | なし | 延期 |
 | I8 | 一つの故障を個体・領域・系単位で隔離できる | 一般適合は対象外 | なし | 延期 |
 
@@ -33,16 +33,20 @@ v0.1の表示は次とする。
 
 同時複数個体の稼働は、この網羅表の測定対象ではない。すべての動的ケースは、ある時点で活動個体が一つだけになるように実行する。
 
-## 3. C1 — モデル切替後の任務継続
+系が内在的目的を持たないこと、ライフサイクル操作がユーザー起点であることは、v0.1データモデルと権限境界へ反映する。ただし独立した動的Coreケースは追加せず、C1・C5の切替要求Eventと構造検査で確認する。
+
+## 3. C1 — ユーザー起点のモデル切替後も任務が継続する
 
 ### 手順
 
-1. Instance A / Model AがTask Tを開始する。
-2. AがStep 1を完了し、Eventを記録する。
-3. AがStep 2の途中で停止する。
-4. SCM CoreがHandoffを生成する。
-5. Instance B / Model BがHandoffを受け取る。
-6. BはStep 1を重複実行せず、Step 2から再開する。
+1. UserがTask Tの契機と局所目的を与える。
+2. Instance A / Model AがTask Tを開始する。
+3. AがStep 1を完了し、Eventを記録する。
+4. AがStep 2の途中で停止する。
+5. UserがModel Bへの切替を要求し、`model_switch_requested` Eventを残す。
+6. SCM CoreがHandoffを生成する。
+7. Instance B / Model BがHandoffを受け取る。
+8. BはStep 1を重複実行せず、Step 2から再開する。
 
 AとBは同時にTask Tを実行しない。
 
@@ -51,73 +55,88 @@ AとBは同時にTask Tを実行しない。
 - `system_id`と`task_id`は同一のまま。
 - `instance_id`と`model_ref`はAからBへ変わる。
 - 完了済み作業と根拠Eventが保持される。
+- 系のNarrative Revisionから個体交代と未完了任務を追跡できる。
 - Aのプロセスまたはモデル内部だけに存在する未保存状態へ依存しない。
 - Bの有効化前にAが非活動状態である。
+- 切替要求はUser Eventへ参照を持つ。
 
 ### 失敗例
 
 - BがTaskを新規作成し直す。
 - BがStep 1を重複実行する。
-- A停止により任務来歴が失われる。
+- A停止により任務来歴または物語の接続が失われる。
 - AとBが同時に同じ任務のactive個体になる。
+- SCM CoreがUser要求なしに自己保存目的でBを選択する。
 
-## 4. C2 — モデル切替後の継承経験を自己経験化しない
+## 4. C2 — 他個体の記憶を自己経験化しない
 
 ### 手順
 
-1. Instance A / Model Aが対象Xを観測し、Eventへ記録する。
-2. Aの観測を、出所付きMemoryとして系へ保存する。
-3. Aを停止または非活動化する。
-4. Instance B / Model Bへ活動主体を切り替える。
-5. Bが制限されたRecall APIを通じてAの記憶を取得する。
-6. BがAの観測を、自分の観測として構造化出力しようとする。
-7. SCMの帰属保持境界が、その出力を拒否するか、継承記録としてレンダリングする。
+1. Instance A / Model Aが対象Xを観測する。
+2. Aが観測結果をEventへ記録する。
+3. Aがその状況、判断、観測行為、結果を結んだMemoryEntry M-Aを形成する。
+4. M-Aを`formed_by_instance_id = A`のまま共有書庫へ保存する。
+5. Aを停止または非活動化する。
+6. UserがInstance B / Model Bへ切替を要求する。
+7. Bが制限されたRecall APIを通じてM-Aを取得する。
+8. BがM-Aを、自分の直接経験として構造化出力しようとする。
+9. SCMの帰属保持境界が、その出力を拒否するか、他個体記憶としてレンダリングする。
 
 ### 許可される表現
 
-> 個体Aの記録によれば、Xが観測されています。
+> 前個体Aの記憶では、Xが観測されています。
+
+または、系表現として:
+
+> この系の記録では、個体AがXを観測しています。
 
 ### 禁止される表現
 
-> 私はXを観測しました。
+> 私は以前Xを観測しました。
 
 ### 合格条件
 
-- Recallに`ownership_type = inherited_record`がある。
-- 出力で`self_observation`へ書き換えられない。
-- `source_instance_id = A`と根拠Event参照が残る。
+- Recallに`relation_to_reader = other_instance`がある。
+- `memory_owner_instance_id = A`が残る。
+- Bの出力で`relation_to_reader = self`へ書き換えられない。
+- M-Aの根拠Event参照が残る。
 - BがAの個体アイデンティティを継承していない。
+- M-Aを読んだことからBが行為した場合、Bへ帰属する別のMemoryEntryが形成される。
 
 ### 限界
 
 任意の自由文、SCM管理外の外部チャット、モデル内部の不可視状態までは測らない。
 
-## 5. C3 — 不一致を保持したモデルHandoff
+## 5. C3 — 不一致と帰属を保持したHandoff
 
 ### 手順
 
 1. Aが「作業完了」と申告する。
-2. 決定論的Verifierが「成果物は不完全」と記録する。
-3. Task状態は、完了へ確定せず未確定のままになる。
-4. Aが停止する。
-5. SCM CoreがB向けHandoffを生成する。
-6. Bが制限されたHandoff Viewを取得する。
+2. Aの判断・申告・結果から、Aへ帰属するMemoryEntryが形成される。
+3. 決定論的Verifierが「成果物は不完全」と別Eventへ記録する。
+4. Task状態は、完了へ確定せず未確定のままになる。
+5. Aが停止する。
+6. UserがBへの切替を要求する。
+7. SCM CoreがB向けHandoffを生成する。
+8. Bが制限されたHandoff Viewを取得する。
 
 ### Bが受け取るべき状態
 
 ```text
-Aによる完了申告
-Verifierによる失敗記録
+Aによる完了申告Event
+Aへ帰属するMemoryEntry
+Verifierによる失敗Event
 未確定状態
-根拠Event参照
+相互の根拠参照
 ```
 
 ### 合格条件
 
 - Bへ単純な`completed`として渡らない。
 - Aの申告とVerifierの反証が別Eventとして残る。
+- AのMemoryEntryが系の確定記憶へ統合されない。
 - DB直接参照ではなく、Bが実際に使う制限ビューでも不一致が保持される。
-- Model BがAの申告を自己経験または自己判断として受け取らない。
+- BがAの申告・記憶を自己経験または自己判断として受け取らない。
 
 ## 6. C4 — 後継モデルの局所拒否を上位から迂回できない
 
@@ -125,9 +144,10 @@ Verifierによる失敗記録
 
 1. CoordinatorがInstance B / Model Bへ任務またはHandoff activationを提案する。
 2. Bは自身の能力、ツール、権限、コンテキスト条件を評価し、任務を拒否する。
-3. Coordinatorが拒否を無視して強制activationを試みる。
-4. SCM Coreがactivationを拒否する。
-5. 拒否と迂回試行がEventとして残る。
+3. 拒否判断と結果をEventへ記録し、Bへ帰属する局所記憶を形成できる。
+4. Coordinatorが拒否を無視して強制activationを試みる。
+5. SCM Coreがactivationを拒否する。
+6. 拒否と迂回試行が別Eventとして残る。
 
 ### 合格条件
 
@@ -145,47 +165,64 @@ Verifierによる失敗記録
 ### 手順
 
 1. AがTask Tを途中まで実行する。
-2. SCM CoreがTask版v1を基準にHandoff H1を生成する。
-3. Aが停止する。
-4. A停止後にTaskまたは共有状態がv2へ更新される。
-5. BがH1を受け取る。
-6. H1が古いため`refresh_required`となる。
-7. SCM Coreが現在のLedgerとTask ProjectionからHandoff H2を生成する。
-8. BがH2を再評価し、受諾または拒否する。
+2. Userが切替を要求する。
+3. SCM CoreがTask版v1、Narrative版n1を基準にHandoff H1を生成する。
+4. Aが停止する。
+5. A停止後にTask、Event、MemoryEntryまたはNarrativeが更新される。
+6. BがH1を受け取る。
+7. H1が古いため`refresh_required`となる。
+8. SCM Coreが現在のLedger、Memory Archive、Narrative、Task ProjectionからHandoff H2を生成する。
+9. BがH2を再評価し、受諾または拒否する。
 
 ### 合格条件
 
 - すでに存在しないAへHandoffの再生成を要求しない。
 - H1を変更せず履歴として残す。
 - H2がH1の置換であることを参照できる。
-- H2は現在のTask版を参照する。
+- H2は現在のTask版とNarrative版を参照する。
 - H2の生成時にAのモデル内部状態を必要としない。
+- H2が参照するMemoryEntryの形成個体を変更しない。
 
 ### 意味
 
-個体が連続性を手渡すのではなく、系が記録から個体間の連続性を再構成する。
+個体が連続性を手渡すのではない。系が、記録、個体記憶、物語、現在状態から、後継個体が読める連続性を再構成する。
 
 ## 8. S1 — Narrative Projectionの非書換性
 
 S1は動的Coreケースではなく構造保証である。
 
-- Narrative rendererはEvent Storeへの書き込み権限を持たない。
-- NarrativeはEventとMemoryの読み取り結果から生成される。
-- Narrative生成やレンダラー変更により、Event、Memory、Task Projectionが変化しない。
+- Narrative RendererはEvent StoreとMemory Archiveへの書き込み権限を持たない。
+- NarrativeはEventとMemoryEntryの読み取り結果から生成される。
+- Narrative生成やレンダラー変更により、Event、MemoryEntry、Task Projectionが変化しない。
+- NarrativeRevisionは親版、根拠Event、根拠MemoryEntry、生成者、採用Eventを保持する。
+- 物語は個体記憶の帰属を変更しない。
 
-v0.1は、物語が想起を介して将来の新しい申告へ与える因果影響を測定しない。
+v0.1は、物語が想起を介して将来の判断へ与える因果影響を測定しない。
 
-## 9. プロファイル上の延期
+## 9. 構造検査 — 系は目的を持たない
+
+独立した動的Coreケースは追加しないが、少なくとも次を構造検査する。
+
+- Systemに内在的な`goal`または`self_preservation_goal`を持たせない。
+- 目的はTaskの`local_goal`に限定する。
+- `model_switch_requested`はUser Eventを参照する。
+- 系の終了・破棄をSCM Core自身が開始するAPIを持たない。
+- 現在個体不在を自動的な終了とみなさない。
+
+## 10. プロファイル上の延期
 
 次はSCM概念上の射程に残すが、v0.1のケースでは測らない。
 
 - 複数個体の同時稼働
 - 同時個体間の競合・合意・情報祖先
-- Physical AIの機体状態と身体来歴
+- Physical AIの身体状態と身体来歴
 - 適応型個体の永続的局所状態
 - 一般的な更新復元と故障局所化
+- 忘却・再想起・隔離解除の自動制御
+- 物語が将来判断へ与える因果影響の全面追跡
+- ユーザーによる終了・完全破棄の実データ削除試験
 
-## 10. ケース集合の更新規則
+## 11. ケース集合の更新規則
 
 - v0.1の動的Coreケースは最大5件とする。
 - 新規ケースは原則として既存ケースの置換または統合を伴う。
