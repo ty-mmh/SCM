@@ -1,6 +1,6 @@
 # 近傍・既知技術とのマッピング
 
-- 状態: research map, 2026-07-29
+- 状態: research map, 2026-07-30
 - 方針: 成熟した標準・製品と、形成中の単一プレプリントを同じ証拠強度で扱わない
 - 注意: 本文の「SCMの仕事」は新規性・優先権を断定するものではない
 
@@ -18,14 +18,14 @@
 | SCMの責務 | 近傍・既知 | 借りられる部分 | SCMとして残る仕事 |
 |---|---|---|---|
 | 耐久的な任務継続 | Temporal、LangGraph | Event History、checkpoint、resume、同一Workflow/Threadの継続 | 実行個体IDと任務IDを分け、個体交換時に経験帰属・未確定状態・権限を含めてHandoffする |
-| 追記型記録と来歴 | Event Sourcing、W3C PROV | append-only history、Entity/Activity/Agent、derivation、attribution | 申告と検証を区別し、後継個体が使うRecallへ経験所有を保持する |
-| 任務提案と拒否 | Contract Net Protocol、A2A Protocol | task proposal、allocation、task state、`REJECTED` | 局所拒否をHandoff activationへ結び、上位側から迂回できない経路を作る |
-| 共有メモリ | Letta shared memory blocks | 複数エージェントから同じ永続メモリを利用する | 直接共有だけでなく、出所、経験帰属、未確定状態、個体交代を扱う |
-| 統治された共有メモリ | MemClaw、Governed Collaborative Memory | scope、temporal supersession、provenance、selection・revision traces | 共有メモリを目的・任務・Handoff・系アイデンティティへ接続する |
-| トランザクション的記憶 | MemTX | belief commit、provenance、validity、cascade repairという問題設定 | v0.1では多段階Memory Promotionを延期し、Handoffで未確定状態を潰さない最小部分だけを実装する |
-| 記憶の可搬性 | Portable Agent Memory | 構造化記憶、provenance graph、scoped transfer | 記憶だけでなく、任務、進捗、未確定事項、経験帰属を一つのHandoffとして扱う |
+| 追記型記録と来歴 | Event Sourcing、W3C PROV | append-only history、Entity/Activity/Agent、derivation、attribution | 申告と検証を区別し、後継個体が使うRecallへ経験・記憶の帰属を保持する |
+| 任務提案と拒否 | Contract Net Protocol、A2A Protocol | task proposal、allocation、task state、`REJECTED` | 外部契機の任務を扱い、局所拒否をHandoff activationへ結び、上位側から迂回できない経路を作る |
+| 永続共有メモリ | Letta shared memory blocks | 複数エージェントから同じ永続メモリを利用する | 一つの共同記憶へ融合せず、形成個体への帰属を維持した共有書庫として扱う |
+| 統治された共有メモリ | MemClaw、Governed Collaborative Memory | scope、temporal supersession、provenance、selection・revision traces | 所有者を昇格で変更せず、記憶状態・想起濃度・個体交代・系の物語へ接続する |
+| トランザクション的記憶 | MemTX | belief commit、provenance、validity、cascade repairという問題設定 | v0.1では一般的belief commitを作らず、帰属・失効・矛盾を保つ最小部分だけを実装する |
+| 記憶の可搬性 | Portable Agent Memory | 構造化記憶、provenance graph、scoped transfer | 記憶を移送して所有者を変えるのではなく、他個体の書物として読めるHandoffを扱う |
 | 保証・Attestation | Simplex/Runtime Assurance、RATS | untrusted componentとtrusted monitorの分離、Evidence/Verifier/Relying Party | v0.1では一般保証基盤を作らず、局所拒否とHandoff activationの限定境界だけを扱う |
-| 物理フリート | Open-RMF | 複数フリートと設備の相互運用、上位調停 | 物理実体の固有状態・摩耗・校正を含むプロファイルは将来課題 |
+| 物理フリート | Open-RMF | 複数フリートと設備の相互運用、上位調停 | 外部化された機体記録と、再構成不能な身体固有状態を分けるプロファイルは将来課題 |
 
 ## 3. 成熟した近傍
 
@@ -33,7 +33,7 @@
 
 TemporalのContinue-As-Newは、現在状態を新しいWorkflow Executionへ渡し、同じWorkflow IDと異なるRun IDで履歴を継続する。Event Historyはappend-only logとしてDurable Executionを支える。
 
-SCMはこの能力を代替しない。SCMが追加しようとするのは、実行個体の交換時に、誰の経験か、何が未確定か、どの権限が引き継がれるかを保持する意味論である。
+SCMはこの能力を代替しない。SCMが追加しようとするのは、実行個体の交換時に、誰の経験・記憶か、何が未確定か、どの権限が引き継がれるかを保持する意味論である。
 
 - [Continue-As-New](https://docs.temporal.io/workflow-execution/continue-as-new)
 - [Events and Event History](https://docs.temporal.io/workflow-execution/event)
@@ -46,7 +46,7 @@ LangGraphはgraph stateをcheckpointとして保存し、thread単位で再開�
 
 ### W3C PROV
 
-PROV-DM／PROV-Oは、Entity、Activity、Agent、derivation、attributionなど、来歴表現の成熟した共通語彙を提供する。SCMはPROVの代替ではなく、SCM固有のEvent・Memory・HandoffをPROVへ写像できる可能性がある。
+PROV-DM／PROV-Oは、Entity、Activity、Agent、derivation、attributionなど、来歴表現の成熟した共通語彙を提供する。SCMはPROVの代替ではなく、SCM固有のEvent・MemoryEntry・NarrativeRevision・HandoffをPROVへ写像できる可能性がある。
 
 - [PROV-DM](https://www.w3.org/TR/prov-dm/)
 - [PROV-O](https://www.w3.org/TR/prov-o/)
@@ -65,7 +65,9 @@ A2AはTask、Message、Artifact、task stateを定義し、`TASK_STATE_REJECTED`
 
 ### Letta shared memory
 
-Lettaのmemory blockは複数エージェントへattachでき、共有永続メモリとして利用できる。これは「複数個体が同じ記憶へ接続する」実装例である。
+Lettaのmemory blockは複数エージェントへattachでき、共有永続メモリとして利用できる。これは「複数個体が同じ保存領域へ接続する」実装例である。
+
+SCMでは、保存領域と可読性は共有しても、経験主体と記憶の形成個体は共有しない。
 
 - [Letta Memory Blocks](https://docs.letta.com/guides/core-concepts/memory/memory-blocks)
 
@@ -103,6 +105,8 @@ fleet-memoryの故障モードとして、unauthorized leakage、stale propagati
 
 agent-local、shared institutional、archive、project-continuity memoryを分け、どの記憶を共有制度状態へ昇格・棄却・改訂するかを設計対象にする。
 
+SCMは、この問題設定を近傍として参照しつつ、記憶の形成個体を変更する昇格ではなく、個体帰属を保った書庫と系の物語を分離する。
+
 - arXiv:2605.04264
 - [Abstract / metadata](https://arxiv.org/abs/2605.04264)
 - 確認状態: existence verified / abstract verified
@@ -131,12 +135,14 @@ v0.1で焦点を置く差分は次である。
 
 1. **任務IDと個体IDを分離する。**
 2. **Handoffを例外処理ではなく一級操作にする。**
-3. **出発個体が消えても、系がLedgerからHandoffを再構成する。**
+3. **出発個体が消えても、系がLedger、Memory Archive、NarrativeからHandoffを再構成する。**
 4. **完了申告と反証が食い違う場合、未確定状態を潰さず後継へ渡す。**
-5. **他個体の経験を、Recallから出力まで自己経験へ変えない。**
-6. **局所拒否を上位側から迂回できないHandoff activation経路を作る。**
-7. **Narrativeを非権威的な読み取りProjectionにする。**
-8. **不変条件とケースの対応を明示し、未測定条件を適合済みに見せない。**
+5. **記憶を形成個体へ帰属させ、別個体が読んでも所有者を変えない。**
+6. **他個体の経験・記憶を、Recallから出力まで自己経験へ変えない。**
+7. **局所拒否を上位側から迂回できないHandoff activation経路を作る。**
+8. **Narrativeを系へ帰属する非権威的な版管理Projectionにする。**
+9. **SCM上の系へ内在的な目的を置かず、切替と終了をユーザー操作へ置く。**
+10. **不変条件とケースの対応を明示し、未測定条件を適合済みに見せない。**
 
 ## 6. 現時点で主張しないこと
 
