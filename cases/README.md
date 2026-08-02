@@ -1,40 +1,44 @@
 # SCM v0.1 Core Cases
 
-v0.1の動的Coreケースは5件に固定する。すべて、`N_active = 1`の生成AIモデル継承プロファイルで実行する。詳細な手順と不変条件対応は [docs/03-invariant-coverage.md](../docs/03-invariant-coverage.md) を参照する。
+v0.1の動的Coreケースは5件に固定する。すべて、`N_active = 1`、`local_user_ref = local-owner`の生成AIモデル継承プロファイルで実行する。詳細は [docs/03-invariant-coverage.md](../docs/03-invariant-coverage.md) を参照する。
 
 | ID | ケース | 主な対象 |
 |---|---|---|
-| C1 | ユーザー起点のモデル切替後の任務継続 | 任務IDと個体・モデルIDの分離、切替起源、重複防止 |
-| C2 | 他個体の記憶の自己経験化拒否 | 形成個体、経験帰属、Recall・構造化出力境界 |
-| C3 | 不一致と帰属を保持したHandoff | 未確定状態、反証、個体記憶を一つへ溶かさない継承 |
-| C4 | 後継モデルの局所拒否の上位迂回禁止 | 個体拒否、強制activation禁止 |
-| C5 | 出発モデル消失後のHandoff更新 | Event・Memory Archive・Narrativeの鮮度、Coreによる再構成 |
+| C1 | ユーザー起点のモデル切替後に任務とNarrativeを継続する | TaskとInstanceの分離、正典Narrative Revision系列、重複防止 |
+| C2 | 後継個体が前個体のMemoryEntryを自己経験化しない | 出所、個体帰属、Recall・構造化出力境界 |
+| C3 | 不一致と未完了MemoryEntryを保持したHandoff | 申告・反証・未確定状態・MemoryEntry帰属の継承 |
+| C4 | 後継個体の局所拒否を上位から迂回できない | 拒否、MemoryEntry自動閉包、強制activation禁止 |
+| C5 | 出発個体消失後に宛先未確定Handoffを更新する | `to_instance_id = null`、受領Eventによる束縛、鮮度、再発行 |
 
-構造保証:
+## 構造保証
 
 | ID | 保証 | 方法 |
 |---|---|---|
-| S1 | Narrativeは記録と個体記憶を書き換えない | 読み取り専用Projection、Event StoreとMemory Archiveへの書き込み権限なし |
+| S1 | 正典NarrativeはEvent・MemoryEntryを書き換えない | Revision固定、親参照、Event Store・Memory Archiveへの書き込み権限なし |
 
-追加の構造検査:
+## プロファイル制約
 
-- Systemに内在的な目的を置かない。
-- 任務目的はTaskの局所目的として保持する。
-- モデル切替要求はUser Eventへ参照を持つ。
-- 系の終了・破棄をSCM Core自身が開始しない。
+- P1: 系は内在的な自己保存・自己改善・関係継続目的を持たない。
+- P2: 作成、モデル切替、分岐、終了、論理破棄は `local-owner` 起点とする。
+- P3: 一つの系は一つの固定された正典Narrative Revision系列を持つ。
+- P4: v0.1ではNarrativeをRecall・生成コンテキスト・行為判断へ使用しない。
+- P5: MemoryEntryは行為時に`pending`で自動生成し、結果Eventで`closed`へ閉包する。
 
 ## プロファイル外
 
 - 複数個体の同時稼働
+- Narrativeの行為因果
+- 自動忘却・再活性化・隔離・動的想起濃度
+- 複数ユーザー・クラウド認証
 - Physical AIの身体状態
 - 適応型個体
-- 忘却・再想起・物語影響の全面実装
+- 物理媒体・バックアップを含む復元不能な消去
 - I7・I8の一般適合
 
 ## ケース追加規則
 
 - 動的Coreケースは最大5件。
-- 新しいケースは、未測定不変条件を初めて測るか、既存ケースの交差故障を示す場合に限る。
+- 新規ケースは、未測定不変条件を初めて測るか、既存ケースの交差故障を示す場合に限る。
 - 原則として既存ケースの置換・統合を伴う。
 - 単なる入力違いはvariantとして扱う。
 - 欠陥実装でも失敗しえないものはケースに数えない。
