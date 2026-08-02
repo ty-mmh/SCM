@@ -39,6 +39,8 @@ v0.1は、一人の信頼済みローカルユーザーが一つのローカルS
 
 個体の行為または非行為は、形成個体へ帰属する `MemoryEntry` を自動生成します。結果が未確定の間は `pending`、結果Eventが接続された後は `closed` とします。
 
+正典Narrative Revisionは、系の作成時およびモデル切替を含む重要なライフサイクル節目で生成候補となり、`local-owner` の採用操作によって固定されます。v0.1ではNarrativeをRecallや行為判断には使いません。
+
 ## 三つの主要成果物
 
 1. [キュゥべえモデル研究ノート](docs/00-kyubey-model-research-note.md) — SCMへ至った非規範の着想来歴
