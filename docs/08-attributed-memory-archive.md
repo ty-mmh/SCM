@@ -228,16 +228,20 @@ MemoryEntry
 
 `closure_state`と`memory_state`は別軸である。たとえば、閉包済みの記憶が後から失効する場合、`closed + invalidated`となる。
 
+ユーザーはローカル環境からMemoryEntryのファイル・レコードを物理的に直接変更できる。しかし、その直接変更をSCMの正規の形成・失効処理とはみなさない。
+
 ---
 
 ## 6. v0.1で予約する状態・属性
 
 次はSCM概念との互換性を保つために型へ残せるが、v0.1の遷移規則、C1〜C5、適合判定には使用しない。
 
-- `forgotten`
-- `quarantined`
+- `forgotten_at`
+- `quarantined_at`
 - `recall_weight`
+- `reactivated_at`
 - 自動減衰
+- 自動忘却
 - 自動再活性化
 - 自動隔離
 - 想起回数に基づく動的更新
@@ -255,7 +259,7 @@ memory_state:  normal | invalidated
 
 ---
 
-## 7. 忘却・失効・隔離・論理破棄
+## 7. 忘却・失効・隔離
 
 ### 忘却
 
@@ -269,13 +273,9 @@ memory_state:  normal | invalidated
 
 通常の想起・判断利用から外し、限定経路のみで参照可能にする。
 
-### 論理破棄
+これらの自動遷移はv0.1の適合対象ではない。
 
-活動中の系では、記録・MemoryEntryを通常操作で完全消去しない。
-
-ユーザーが系の終了と破棄を明示した場合、SCMは管理下の論理データを通常の検索・想起・継続操作から除外できる。
-
-物理媒体、バックアップ、複製先を含む復元不能な消去はv0.1の保証対象ではない。
+系終了後のファイル破棄、DBレコード削除、バックアップ削除、物理媒体の処分などは、SCMの範囲外である。
 
 ---
 
@@ -336,6 +336,8 @@ RecallItem
 
 v0.1では正典NarrativeをRecall候補選定、順位付け、生成コンテキストへ使用しない。
 
+概念SCMでTask実施個体がNarrativeを読んだ場合、その読書来歴はTask本体ではなくEvent・MemoryEntryへ残す。
+
 ---
 
 ## 10. 正典Narrativeとの境界
@@ -348,8 +350,20 @@ MemoryEntryは局所的で、個体へ帰属する。
 
 正典Narrative RevisionはMemoryEntryを書き換える権限を持たない。
 
+Narrativeの解釈・判断は系に帰属し、Narrativeを計算したモデル・プロセスの実行来歴とは分ける。
+
 ---
 
-## 11. 定義文
+## 11. モデル固有傾向との境界
+
+SCMは、各InstanceのEvent、MemoryEntry、`model_ref`を保存できる。
+
+しかし、それらから「Model Xには傾向Pがある」と一般化する規則は持たない。
+
+モデル固有傾向への一般化条件は未決であり、DDISなどの調査・評価機構との接続候補として保留する。
+
+---
+
+## 12. 定義文
 
 > **SCMにおけるMemoryEntryとは、ある個体が、外部化されたEventをもとに、状況、外化された判断理由、行為または非行為、結果を局所的な因果として接続した記述単位である。MemoryEntryは形成個体に帰属し、SCMの共有書庫へ根拠Eventおよび参照MemoryEntryとの接続を保ったまま保存される。他の個体はそれを他者の記述として想起・参照できるが、自身の直接経験として所有しない。SCM v0.1では行為時にpending MemoryEntryを自動生成し、結果Eventによってclosedへ機械的に閉包する。**
