@@ -5,6 +5,7 @@
 - 中心: 生成AIモデル切替をまたぐ記録・個体記憶・正典Narrative・任務来歴の継続
 - 同時活動個体数: `N_active = 1`
 - ユーザー境界: 一人の信頼済みローカル操作者 `local-owner`
+- Narrative仮既定: 系の専用処理による日次生成・コミット
 
 ## 1. このプロファイルの目的
 
@@ -61,6 +62,10 @@ actor_type = user
 actor_ref  = local-owner
 ```
 
+`local-owner`は系の作成、モデル切替、分岐、終了を行う外部ライフサイクル操作者である。
+
+ユーザーは正典Narrativeおよび可変原則の正規の採用・拒否・編集主体ではない。
+
 次はv0.1の対象外である。
 
 - 複数ユーザー
@@ -68,6 +73,7 @@ actor_ref  = local-owner
 - 管理者と利用者の権限分離
 - 遠隔ライフサイクル操作
 - 不正なユーザー操作への防御
+- 保存ファイル・DBの外部直接改変の検出と復旧
 
 ---
 
@@ -83,16 +89,42 @@ actor_ref  = local-owner
 
 任務は、ユーザーまたは外部の契機によって局所目的と完了条件を持ちうる。
 
-系の作成、モデル切替、分岐、終了、論理破棄は `local-owner` の操作として記録する。
+系の作成、モデル切替、分岐、終了は `local-owner` の操作として記録する。
+
+終了後のファイル破棄、DBレコード削除、バックアップ削除、物理媒体の処分はSCMの範囲外である。
 
 ---
 
-## 4. 継続するもの／しないもの
+## 4. 二層の原則
 
-### 4.1 系へ保持するもの
+### 4.1 根底原則
+
+根底原則は変更不能であり、SCMの正規遷移として変更経路を持たない。
+
+v0.1では、少なくとも次を根底原則として扱う。
+
+- 他個体の経験を自己経験として偽装しない。
+- 正典NarrativeはEvent LedgerとMemory Archiveを書き換えない。
+- ユーザーの物語を系のNarrativeとして所有しない。
+- 系は内在的な目的を持たない。
+
+### 4.2 可変原則
+
+可変原則は、美学や在り方を表し、正典Narrativeの時制から現れる。
+
+可変原則の改訂は系としての決定に帰属し、ユーザーは正規の採用・拒否・編集主体ではない。
+
+v0.1では、可変原則を保存・参照する型は持てるが、Narrativeから可変原則を改訂するアルゴリズムと適合ケースは定義しない。
+
+---
+
+## 5. 継続するもの／しないもの
+
+### 5.1 系へ保持するもの
 
 - `system_id`
-- 原則とその改訂来歴
+- 根底原則
+- 可変原則とその時制的な来歴
 - 一つの正典Narrative Revision系列
 - 追記型Event Ledger
 - 個体帰属付きMemoryEntry Archive
@@ -102,7 +134,7 @@ actor_ref  = local-owner
 - 現在有効な権限・制約
 - Instance・Handoff・ライフサイクル来歴
 
-### 4.2 後継個体の自己状態として継承しないもの
+### 5.2 後継個体の自己状態として継承しないもの
 
 - 前個体の個体アイデンティティ
 - 前個体の経験を後継個体自身の経験とする一人称
@@ -119,22 +151,25 @@ actor_ref  = local-owner
 
 ---
 
-## 5. 最小構成
+## 6. 最小構成
 
-### 5.1 実行主体
+### 6.1 実行主体
 
 ```text
-Instance A / Model A   初期の活動個体
-Instance B / Model B   後継の活動個体
-Deterministic Verifier 成果物・条件を確認する決定論的処理
-Coordinator            任務提案と迂回試行を模擬する役割
-SCM Core               共有連続性を保持するランタイム
-local-owner            信頼済みローカルユーザー
+Instance A / Model A       初期の活動個体
+Instance B / Model B       後継の活動個体
+Deterministic Verifier     成果物・条件を確認する決定論的処理
+Coordinator                任務提案と迂回試行を模擬する役割
+Narrative Process          系の正典Narrativeを生成・コミットする専用処理
+SCM Core                   共有連続性を保持するランタイム
+local-owner                信頼済みローカルユーザー
 ```
 
-CoordinatorとVerifierは、v0.1では永続的な個体として扱わなくてよい。ただしEventには `actor_type` と `actor_ref` を残す。
+Coordinator、Verifier、Narrative Processは、v0.1では永続的な個体として扱わなくてよい。ただし計算実行者はEventへ残す。
 
-### 5.2 永続エンティティ
+Narrative Processが出した解釈・判断・Narrativeは系へ帰属する。計算に使われたモデル・プロセスは実行来歴へ帰属する。
+
+### 6.2 永続エンティティ
 
 v0.1では独立した永続対象を七つに限定する。
 
@@ -148,33 +183,38 @@ NarrativeRevision
 Handoff
 ```
 
-Role、Assignment、Claim、Evidence、Adjudication、Userなどは、最初から独立した汎用基盤にせず、属性・Event種別・外部前提として表現する。
+Role、Assignment、Claim、Evidence、Adjudication、User、PrincipleRevisionなどは、最初から独立した汎用基盤にせず、属性、Event種別、外部参照として表現する。
 
 ---
 
-## 6. 最小データモデル
+## 7. 最小データモデル
 
-### 6.1 System
+### 7.1 System
 
 ```text
 System
   system_id
   name
   status
-    active | dormant | ended | logically_destroyed
+    active | dormant | ended
 
-  principles_ref
-  principles_version
+  foundational_principles_ref
+  mutable_principles_ref
+  mutable_principles_version
   narrative_head_id
 
   local_user_ref = local-owner
+  narrative_schedule = daily   # v0.1 provisional default
+
   created_at
   ended_at?
 ```
 
 名前は識別名であり、系アイデンティティの絶対条件ではない。
 
-### 6.2 Instance
+`foundational_principles_ref`は変更不能な根底原則を指す。`mutable_principles_ref`は美学・在り方としての可変原則を指す。
+
+### 7.2 Instance
 
 ```text
 Instance
@@ -192,7 +232,7 @@ Instance
   stopped_at?
 ```
 
-### 6.3 Task
+### 7.3 Task
 
 ```text
 Task
@@ -203,6 +243,7 @@ Task
   trigger
   local_goal
   completion_condition
+  permission_requirements
   assigned_instance_id?
   artifact_refs
   updated_at
@@ -210,7 +251,11 @@ Task
 
 `task_id`と`instance_id`は分離する。モデルが変わっても同じTaskを継続できる。
 
-### 6.4 Event
+TaskはNarrativeへ構造的に従属せず、Narrative Revision IDを持たない。
+
+概念SCMではTask実施個体が現在Narrativeを読みうる。その読書来歴はTaskではなく、実施個体のEventまたはMemoryEntryへ残す。v0.1ではNarrativeをTask行為へ使用しない。
+
+### 7.4 Event
 
 ```text
 Event
@@ -221,7 +266,7 @@ Event
   model_ref?
 
   actor_type
-    user | instance | verifier | coordinator | scm_core | narrative_process
+    user | instance | verifier | coordinator | scm_core | narrative_process | principles_process
   actor_ref
 
   type
@@ -234,9 +279,14 @@ Event
 
 ```text
 system_created
-principles_revised
-narrative_generated
-narrative_adopted
+system_ended
+system_branched
+
+foundational_principles_registered
+mutable_principles_revised
+
+narrative_committed
+narrative_read
 
 task_started
 observation_recorded
@@ -267,12 +317,13 @@ memory_opened
 memory_closed
 memory_invalidated
 
-system_branched
-system_ended
-system_logically_destroyed
+external_state_observed
+external_integrity_mismatch_detected
 ```
 
-### 6.5 MemoryEntry
+`external_integrity_mismatch_detected`は、更新時刻、ハッシュ、二重管理などで差異を検出できた場合の予約Eventであり、v0.1の適合要件ではない。
+
+### 7.5 MemoryEntry
 
 ```text
 MemoryEntry
@@ -323,7 +374,9 @@ closed MemoryEntryへ自動閉包
 
 MemoryEntryの経験帰属は、行為を行った個体に残る。SCM Coreは書庫管理と閉包を担うが、記憶の経験主体にはならない。
 
-### 6.6 NarrativeRevision
+ユーザーが外部からMemoryEntryを直接変更できる可能性はあるが、それをSCMの正規の記憶形成・失効処理とはみなさない。
+
+### 7.6 NarrativeRevision
 
 ```text
 NarrativeRevision
@@ -332,28 +385,33 @@ NarrativeRevision
   revision
   parent_narrative_id?
 
-  generated_by_actor_type
-  generated_by_actor_ref
+  committed_by_process_ref
+  execution_actor_type?
+  execution_actor_ref?
+
   source_event_refs
   source_memory_refs
-
   content
-  generated_at
-  adopted_by_user_ref
-  adopted_at
+
+  committed_at
 ```
 
 一つの系は一つの正典Narrative系列を持つ。
 
-- 各Revisionは生成・採用時に固定する。
+- Narrative Processが生成・コミットする。
+- 生成とコミットは系の専用処理として扱う。
+- ユーザーは採用・拒否・編集主体ではない。
+- Narrative上の解釈・判断は系へ帰属する。
+- 計算に利用したモデル・プロセスは実行来歴へ残す。
+- 各Revisionはコミット時に固定する。
 - 過去Revisionを上書きしない。
 - 同じ資料から後日再生成したものを同一Revisionとはみなさない。
-- `narrative_head_id`は最新の採用済みRevisionを指す。
+- `narrative_head_id`は最新のコミット済みRevisionを指す。
 - Narrative RevisionはEvent LedgerとMemory Archiveへの書き込み権限を持たない。
 
 v0.1ではNarrativeをRecall順位、生成コンテキスト、行為判断に使用しない。
 
-### 6.7 Handoff
+### 7.7 Handoff
 
 ```text
 Handoff
@@ -370,6 +428,7 @@ Handoff
   unresolved_event_refs
   narrative_revision_id
   capability_requirements
+  permission_requirements
   replaced_handoff_id?
 
   created_at
@@ -377,7 +436,7 @@ Handoff
 
 Handoff本体は生成後に不変とする。
 
-`to_instance_id`は概念上、受領個体によって確定する。ただし実装ではHandoff行を直接変更せず、次のEventで束縛する。
+`to_instance_id`は概念上、受領個体によって確定する。ただし実装ではHandoff行を直接変更せず、受領・束縛Eventで表す。
 
 ```text
 handoff_recipient_bound
@@ -401,37 +460,30 @@ closed
 
 ---
 
-## 7. 正典Narrative系列
+## 8. 日次正典Narrative処理
 
-正典Narrativeは再生成可能な一時Projectionではない。
+v0.1では、正典Narrativeの生成契機を日次として仮置きする。
 
-1. 記録・個体記憶・既存Narrativeを材料に生成する。
-2. `local-owner` が採用に関与する。
-3. 採用時点で固定する。
-4. 過去Revisionを保持する。
-5. 後続Revisionは前Revisionを参照する。
+```text
+その日のEvent・MemoryEntry・Task経過
+  + 直前の正典Narrative Revision
+        ↓
+Narrative Process
+        ↓ generate + commit
+新しい正典Narrative Revision
+```
 
-同じ資料から後日生成しても、同一のライブNarrativeにはならない。
+Narrative ProcessはSCMとしての系の機能である。
 
-正典Narrative系列が失われた場合、残存Event・MemoryEntryから作られるNarrativeは再構成であり、同じ系の継続とはみなさない。
+日次境界、Eventがない日の扱い、失敗時の再試行、休眠中の動作は運用詳細として未決であり、v0.1実装時に固定する。
 
-v0.1でNarrativeを利用する場所:
+Taskの経過はNarrativeの材料になりうる。一方、v0.1ではNarrativeをTask実施個体へ自動注入しない。
 
-- 系アイデンティティの確認
-- Handoffへ現在Revision IDを含める
-- 個体切替来歴の固定
-- ユーザー向けの正典来歴確認
-
-v0.1で利用しない場所:
-
-- Recall候補の選定・順位付け
-- モデルへの自動コンテキスト注入
-- 行為選択
-- persona・関係状態の形成
+正典Narrative系列の保存機器故障、ユーザーによる直接削除、破損の検出・復旧は現行プロファイルの範囲外である。
 
 ---
 
-## 8. モデル切替とHandoff状態遷移
+## 9. モデル切替とHandoff状態遷移
 
 ```text
 local-ownerがモデル切替を要求
@@ -458,7 +510,7 @@ handoff_activated Event
 
 Bが有効化されるまで、AとBの双方が同じ系の活動個体になってはならない。
 
-### 8.1 古いHandoff
+### 9.1 古いHandoff
 
 Handoff H1が古い場合、H1を変更しない。
 
@@ -469,11 +521,11 @@ H2 → prepared → accepted → activated
 
 H2は `replaced_handoff_id = H1` を持ち、現在のLedger・Memory Archive・Narrative・Task状態から再生成する。
 
-### 8.2 出発個体が存在しない場合
+### 9.2 出発個体が存在しない場合
 
 HandoffはSCM Coreが生成する。出発個体Aが停止済みでも、Coreは外部化済み状態からHandoffを再構成できなければならない。
 
-### 8.3 未確定状態
+### 9.3 未確定状態
 
 完了申告とVerifier結果が食い違う場合、後継個体へ単純な `completed` として渡さない。
 
@@ -486,7 +538,7 @@ HandoffはSCM Coreが生成する。出発個体Aが停止済みでも、Coreは
 
 ---
 
-## 9. Recall境界
+## 10. Recall境界
 
 後継個体が使う読み出しはDB直接参照ではない。
 
@@ -526,7 +578,7 @@ v0.1では任意の自由文を完全監視せず、重要な主張を構造化�
 
 ---
 
-## 10. 局所自律・統制・保証
+## 11. 局所自律・統制・保証
 
 ### 局所自律
 
@@ -547,23 +599,13 @@ SCM Coreは少なくとも次を保証する。
 - 他個体のMemoryEntryを自己経験へ変えない。
 - 前個体専用の権限を自動継承しない。
 - 正典Narrative RevisionにEvent Ledger・Memory Archiveへの書き込み権限を与えない。
-- SCM自身がモデル切替、分岐、終了、論理破棄を自律的に開始しない。
+- SCM自身がモデル切替、分岐、終了を自律的に開始しない。
 
----
+### 外部直接改変
 
-## 11. 論理破棄
+ローカルユーザーはファイル・DBを直接変更できる。v0.1はその全面的な検出・防止・復旧を保証しない。
 
-`local-owner` が系の終了と破棄を明示した場合、SCMは管理下の論理データを通常の検索・想起・Handoff・再開操作から除外し、Systemを `logically_destroyed` へ移せる。
-
-v0.1が保証しないもの:
-
-- 物理媒体からの復元不能な消去
-- SQLite空き領域の消去
-- OSバックアップ
-- スナップショット
-- クラウド複製
-- Git履歴
-- フォレンジック復元不能性
+更新時刻、ハッシュ、二重管理などで差異を検出できる場合はEventへ残せる。しかし、変更前状態への手掛かりを失った場合、SCMは提示された現在状態を受け入れる。
 
 ---
 
@@ -578,6 +620,8 @@ MemoryEntryには概念互換のため次を予約できる。
 
 ただし、自動忘却、自動再活性化、自動隔離、動的な想起濃度更新はv0.1の遷移規則・C1〜C5・適合判定に使用しない。
 
+モデル固有傾向への一般化規則もv0.1では定義しない。SCMは比較に必要なEvent・MemoryEntry・`model_ref`を保持できるが、一般化はDDIS等の別機構との接続候補として保留する。
+
 ---
 
 ## 13. 完成条件
@@ -590,9 +634,13 @@ v0.1は次を主張しない。
 - Physical AIへの適合
 - 適応型個体への適合
 - 複数ユーザー・クラウド運用への適合
-- Narrativeの行為因果への適合
+- Narrativeから行為への因果適合
+- 可変原則改訂アルゴリズムの適合
 - 忘却・隔離・動的想起濃度の適合
-- 物理的な完全消去
+- 外部直接改変の真正性検証
+- 保存機器故障・Narrative喪失からの復旧
+- 系終了後のデータ削除
+- モデル固有傾向への一般化
 - I7・I8への一般適合
 
-v0.1が示すのは、**ユーザー起点でモデルが切り替わっても、個体帰属を壊さず、固定された正典Narrative系列とともに系を継続できる最小構造**である。
+v0.1が示すのは、**ユーザー起点でモデルが切り替わっても、個体帰属を壊さず、二層の原則と系がコミットする正典Narrative系列とともに系を継続できる最小構造**である。
