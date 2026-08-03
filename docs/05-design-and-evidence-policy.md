@@ -11,6 +11,8 @@ SCMは概念文だけで完結しない。共有連続性の構造を実装し�
 
 ケースは本体の代替ではない。合否判定だけでなく、構造上の不足を発見してCoreへ戻す観測装置として扱う。
 
+また、会話内での補完や工学的提案を、ユーザーが明示的に置いた概念判断と混同しない。
+
 ## 2. v0.1の中心判定
 
 新しい構造がv0.1 Coreに属するかは、次の問いで判定する。
@@ -19,10 +21,12 @@ SCMは概念文だけで完結しない。共有連続性の構造を実装し�
 
 現在の中心対象は次である。
 
-- TaskとInstanceの分離
-- Event Ledger
+- System / Instance / TaskのID分離
+- Append-only Event Ledger
 - 個体帰属付きMemoryEntry Archive
+- 変更不能な根底原則
 - 一つの正典Narrative Revision系列
+- 系の専用Narrative Process
 - 宛先未確定Handoffと受領Eventによる束縛
 - 経験帰属を保持するRecall境界
 - 信頼済みローカルユーザー起点のライフサイクル
@@ -38,7 +42,8 @@ SCMは概念文だけで完結しない。共有連続性の構造を実装し�
 3. 既存構造の属性またはEvent種別へ単純に畳めない。
 4. v0.1参照プロファイルの対象内である。
 5. 外部の経験的主張へ依存する場合、証拠状態が明示されている。
-6. 追加時に、何を縮約・延期・削除できるかを同時に検討している。
+6. ユーザーの明示的決定か、アシスタントによる提案・補正かが区別されている。
+7. 追加時に、何を縮約・延期・削除できるかを同時に検討している。
 
 ## 4. 剪定条件
 
@@ -49,6 +54,7 @@ SCMは概念文だけで完結しない。共有連続性の構造を実装し�
 - 既存のより単純な構造へ統合できる。
 - 将来プロファイルにしか必要ない。
 - 未確認の外部主張だけを根拠に導入された。
+- ユーザーが明示していない補完を、正典判断として固定している。
 - 導入により、共有連続性より別問題のほうが大きくなる。
 - 二巡連続で、どのCoreケースにも要求されない。
 
@@ -61,7 +67,23 @@ SCMは概念文だけで完結しない。共有連続性の構造を実装し�
 
 各レビュー巡の終わりに、この四判定を必ず行う。
 
-## 5. 予約フィールドの規則
+## 5. 権限・帰属・実行可能性を混同しない
+
+次を別々に扱う。
+
+- SCMの正規遷移として誰に帰属するか
+- 実装上どのモデル・プロセスが計算したか
+- ローカルユーザーが物理的に何を変更できるか
+- SCM内部から変更を検出・証明できるか
+
+例:
+
+- Narrativeの解釈・判断・帰属は系にある。
+- Narrativeを計算したモデル・プロセスは実行来歴として残る。
+- ユーザーはファイルを直接変更できるが、Narrativeの正規編集主体ではない。
+- 全状態が整合的に改変された場合、SCM単独では真正性を証明できない。
+
+## 6. 予約フィールドの規則
 
 概念互換のため予約フィールドを残す場合、次を明記する。
 
@@ -79,7 +101,7 @@ SCMは概念文だけで完結しない。共有連続性の構造を実装し�
 
 予約フィールドを置くことは、機構を実装済みと主張することではない。
 
-## 6. ケース集合の統制
+## 7. ケース集合の統制
 
 - v0.1の動的Coreケースは最大5件。
 - ケース追加は、未測定不変条件を初めて測る場合、または既存ケースの交差故障を示す場合に限る。
@@ -90,7 +112,7 @@ SCMは概念文だけで完結しない。共有連続性の構造を実装し�
 
 ケース集合をCoreの唯一の権威にはしない。不変条件、参照プロファイル、ケース、構造保証、プロファイル制約を [03-invariant-coverage.md](03-invariant-coverage.md) で対応づける。
 
-## 7. 設計主張の証拠レジストリ
+## 8. 設計主張の証拠レジストリ
 
 外部文献だけでなく、会話内の提案、設計仮説、局所実験も、Coreへ影響した時点で同じ台帳へ置く。
 
@@ -105,6 +127,7 @@ DesignClaim
     design_choice
     external_evidence
     conversation_hypothesis
+    assistant_proposal
     local_experiment
 
   source
@@ -117,6 +140,8 @@ DesignClaim
 
 ```text
 unverified
+user_stated
+user_confirmed
 existence_verified
 metadata_verified
 abstract_verified
@@ -126,18 +151,20 @@ reproduced_locally
 independently_reproduced
 ```
 
-「論文が存在する」と「本文が特定結果を報告する」と「結果が再現した」を分ける。
+「ユーザーが置いた」「ユーザーが提案を受理した」「アシスタントが補完した」を分ける。
+
+「論文が存在する」と「本文が特定結果を報告する」と「結果が再現した」も分ける。
 
 ### Core採用との接続
 
 次の条件をともに満たす構造は、最初の削除・延期候補になる。
 
-- 根拠が`conversation_hypothesis`または未確認の`external_evidence`だけである。
+- 根拠が`conversation_hypothesis`、`assistant_proposal`、未確認の`external_evidence`だけである。
 - 現在のCoreケース・構造保証・プロファイル制約から要求されない。
 
-一方、`task_id`と`instance_id`の分離、Handoffの宛先未確定、MemoryEntryの個体帰属など、ケースと正典から論理的に要求される構造は、学術文献がなくてもCoreへ置ける。
+一方、`task_id`と`instance_id`の分離、Handoffの宛先未確定、MemoryEntryの個体帰属、Narrativeの系帰属など、ケースと正典から論理的に要求される構造は、学術文献がなくてもCoreへ置ける。
 
-## 8. 形成中研究の引用規約
+## 9. 形成中研究の引用規約
 
 形成中研究を引用するときは、最低限次を一組で固定する。
 
@@ -151,7 +178,7 @@ independently_reproduced
 
 文献名やIDの正しさだけで、内容主張を確認済みとみなさない。
 
-## 9. 現在の剪定結果
+## 10. 現在の剪定結果
 
 ### Coreへ残す
 
@@ -160,7 +187,9 @@ independently_reproduced
 - 自動閉包型MemoryEntry
 - 個体帰属付きMemory Archive
 - Recall境界
+- 変更不能な根底原則
 - 一つの固定された正典Narrative Revision系列
+- 系の専用Narrative Process
 - 宛先未確定Handoff
 - 受領EventによるHandoffと後継個体の束縛
 - 信頼済みローカルユーザー `local-owner`
@@ -173,6 +202,7 @@ independently_reproduced
 - Decision Context Manifest: v0.1では任意の`source_refs`・`recalled_memory_refs`へ縮約
 - Userエンティティ: v0.1では固定`actor_ref = local-owner`へ縮約
 - Handoffの宛先更新: Handoff行の変更ではなく受領・束縛Eventへ縮約
+- 可変原則の改訂履歴: v0.1ではSystem参照とEventへ縮約
 
 ### 延期
 
@@ -181,12 +211,16 @@ independently_reproduced
 - 多次元Independence Assessment
 - 未捕捉チャネル比較
 - タスク分解木への制約伝播
-- Narrativeの行為因果
+- Narrativeから行為への因果
+- 可変原則の改訂アルゴリズム
 - 自動忘却・再活性化・隔離・動的想起濃度
 - Clock Attestation
 - behavior revalidation
 - 複数ユーザー・クラウド運用
+- モデル固有傾向への一般化
+- 外部直接改変の検出・復旧
+- Narrative喪失への耐障害性
 - 適応型・物理・人間プロファイル
-- 物理媒体・バックアップを含む復元不能な消去
+- 系終了後のデータ削除
 
 延期は不要の宣言ではない。現行ケースから要求されない、またはv0.1の中心を漂流させるため、Coreへ入れないという判断である。
