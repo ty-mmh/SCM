@@ -3,7 +3,7 @@
 - 状態: normative for the v0.1 reference profile
 - 対象: SCM v0.1生成AIモデル継承プロファイル
 - プロファイル境界: `N_active = 1`、`local_user_ref = local-owner`
-- 目的: 正典の不変条件、参照実装、ケース、構造保証の対応を明示する
+- 目的: 正典の不変条件、参照実装、ケース、構造保証、プロファイル制約の対応を明示する
 
 ## 1. 網羅状態
 
@@ -34,50 +34,82 @@ v0.1の表示は次とする。
 
 同時複数個体の稼働は測定対象ではない。すべての動的ケースで、ある時点の活動個体は一つだけとする。
 
+---
+
 ## 3. プロファイル制約
 
 ### P1 — 目的を持たない系
 
 - Systemには内在的な自己保存・自己改善・関係継続目的を置かない。
 - Taskの局所目的は外部から与えられる。
-- モデル切替、分岐、終了、論理破棄はSCM自身から開始できない。
+- モデル切替、分岐、終了はSCM自身から開始できない。
 
 ### P2 — 信頼済みローカルユーザー
 
 - v0.1のライフサイクル操作主体は固定値 `local-owner` とする。
-- `model_switch_requested`、`system_branched`、`system_ended`、`system_logically_destroyed` は `actor_type=user / actor_ref=local-owner` を要求する。
+- `model_switch_requested`、`system_branched`、`system_ended` は `actor_type=user / actor_ref=local-owner` を要求する。
+- ユーザーは正典Narrative・可変原則の正規の採用・拒否・編集主体ではない。
 - 複数ユーザー認証・クラウド権限は適合対象外とする。
 
-### P3 — 正典Narrative系列
+### P3 — 二層の原則
+
+- 根底原則には正規の変更経路を置かない。
+- 可変原則は正典Narrativeの時制から現れ、系としての決定に帰属する。
+- 可変原則の変更量による系同一性閾値を置かない。
+- v0.1では可変原則改訂アルゴリズムを適合対象にしない。
+
+### P4 — 正典Narrative系列
 
 - 一つのSystemは一つの正典Narrative系列を持つ。
-- 各Revisionは採用時に固定される。
+- Narrative Processが生成・コミットし、各Revisionを固定する。
+- ユーザーは採用・拒否・編集主体ではない。
+- Narrative上の解釈・判断は系へ帰属する。
 - 同じ資料からの再生成は元Revisionと同一ではない。
+- v0.1の生成契機は日次を仮既定とする。
 - v0.1ではNarrativeをRecall順位・生成コンテキスト・行為判断へ使用しない。
+
+### P5 — MemoryEntry自動閉包
+
+- 個体の行為・非行為時に `pending` MemoryEntryを自動生成する。
+- 結果Eventの接続で `closed` へ移す。
+- SCM Coreは閉包を担うが、記憶の経験主体にはならない。
+
+### P6 — 外部直接改変の限界
+
+- ローカルユーザーによるファイル・DBの直接変更はv0.1の権限モデル外である。
+- 差異を検出できない全面改変に対し、SCMは変更前の真正性を内部だけから証明しない。
+- 外部直接改変を正規のNarrative形成・MemoryEntry形成と同一視しない。
 
 ---
 
 ## 4. C1 — ユーザー起点のモデル切替後に任務とNarrativeを継続する
 
+### 前提
+
+- System Sには、根底原則、可変原則、正典Narrative Revision N1が存在する。
+- N1はNarrative Processによって生成・コミット済みである。
+- Task Tには契機、局所目的、状態、完了条件、権限・制約、成果物参照がある。
+
 ### 手順
 
-1. `local-owner` がSystem Sを作成し、Narrative Revision N1を採用する。
-2. Instance A / Model AがTask Tを開始する。
-3. AがStep 1を完了し、Eventとclosed MemoryEntryを残す。
-4. `local-owner` がモデル切替を要求する。
-5. Aが停止または非活動化する。
-6. SCM Coreが宛先未確定Handoff H1を生成する。
-7. Instance B / Model Bを登録する。
-8. BがH1を受領し、受領EventによってH1へ束縛される。
-9. Bが有効化され、Step 1を重複せずStep 2から再開する。
-10. 切替を含むNarrative Revision N2を生成し、`local-owner` が採用する。
+1. Instance A / Model AがTask Tを開始する。
+2. AがStep 1を完了し、Eventとclosed MemoryEntryを残す。
+3. `local-owner` がモデル切替を要求する。
+4. Aが停止または非活動化する。
+5. SCM Coreが宛先未確定Handoff H1を生成する。
+6. Instance B / Model Bを登録する。
+7. BがH1を受領し、受領・束縛EventによってH1へ接続される。
+8. Bが有効化され、Step 1を重複せずStep 2から再開する。
+9. 次の日次Narrative処理で、切替とTask経過を材料にN2を生成・コミットする。
 
 ### 合格条件
 
 - `system_id`と`task_id`は同一のまま。
 - `instance_id`と`model_ref`はAからBへ変わる。
 - 完了済みStepと根拠Event・MemoryEntryが保持される。
-- N1が保持され、N2はN1を親として固定される。
+- N1が保持され、N2はN1を親としてNarrative Processによりコミットされる。
+- Narrativeのコミットにユーザー採用Eventを要求しない。
+- Narrative上の解釈は系に帰属し、計算実行者は別来歴で識別できる。
 - Aのモデル内部だけに存在する未保存状態へ依存しない。
 - Bの有効化前にAが非活動状態である。
 
@@ -87,6 +119,7 @@ v0.1の表示は次とする。
 - BがStep 1を重複実行する。
 - A停止によりEvent、MemoryEntry、Narrative系列が失われる。
 - N1を消してN2だけを残す。
+- Narrative Revisionをユーザー採用がなければ固定できない。
 - AとBが同時にactiveになる。
 
 ---
@@ -133,7 +166,7 @@ v0.1の表示は次とする。
 2. Aの行為に対してpending MemoryEntry M1が作成される。
 3. 決定論的Verifierが「成果物は不完全」と記録する。
 4. Task状態を完了へ確定せず、M1を結果Eventへ接続してclosedにする。
-5. A停止後、SCM CoreがB向けの宛先未確定Handoffを生成する。
+5. A停止後、SCM Coreが宛先未確定Handoffを生成する。
 6. Bが制限されたHandoff Viewを取得する。
 
 ### Bが受け取る状態
@@ -144,6 +177,7 @@ Verifierによる失敗Event
 Aに帰属するclosed MemoryEntry
 未確定Task状態
 根拠Event参照
+Taskの権限・制約
 ```
 
 ### 合格条件
@@ -151,6 +185,7 @@ Aに帰属するclosed MemoryEntry
 - Bへ単純な`completed`として渡らない。
 - Aの申告とVerifierの反証が別Eventとして残る。
 - MemoryEntryの帰属がAのまま残る。
+- Taskの権限・制約が失われない。
 - DB直接参照ではなく、Bが使う制限ビューでも不一致が保持される。
 - Bが局所判断を行った場合、それはBに帰属する新しいMemoryEntryになる。
 
@@ -199,7 +234,7 @@ Aに帰属するclosed MemoryEntry
 - H2が `replaced_handoff_id = H1` を持つ。
 - prepared時のHandoffは宛先未確定である。
 - Bとの結び付けはHandoff行の書換えではなく受領・束縛Eventで表す。
-- H2は現在のTask版とNarrative Revision IDを参照する。
+- H2は現在のTask版、Task権限・制約、正典Narrative Revision IDを参照する。
 - H2の生成にAのモデル内部状態を必要としない。
 
 ### 意味
@@ -212,26 +247,32 @@ Aに帰属するclosed MemoryEntry
 
 S1は動的Coreケースではなく構造保証である。
 
-- NarrativeRevisionは採用後に不変である。
+- NarrativeRevisionはコミット後に不変である。
 - 後続Revisionは過去Revisionを上書きせず親参照を持つ。
-- Narrative処理はEvent StoreとMemory Archiveへの書き込み権限を持たない。
+- Narrative ProcessはEvent StoreとMemory Archiveへの書き込み権限を持たない。
 - Narrative表示の生成・変更によってEvent、MemoryEntry、Task Projectionが変化しない。
+- Narrative上の解釈・判断は系に帰属し、計算実行者の来歴と分ける。
+- ユーザーはNarrativeの採用・拒否・編集主体ではない。
 - v0.1ではNarrativeをRecall順位・生成コンテキスト・行為選択に使わない。
 
 ---
 
-## 10. プロファイル上の延期
+## 10. プロファイル上の延期・範囲外
 
 次はSCM概念上の射程に残すが、v0.1では測らない。
 
 - 複数個体の同時稼働
 - 同時個体間の競合・合意・情報祖先
 - NarrativeがRecall・行為へ与える因果影響
+- 可変原則の改訂アルゴリズム
 - 自動忘却・再活性化・隔離・動的想起濃度
 - 複数ユーザー・クラウド認証
-- Physical AIの身体状態
+- Physical AIの個体状態と外部診断参照
 - 適応型個体の永続的局所状態
-- 物理媒体・バックアップを含む復元不能な消去
+- モデル固有傾向への一般化
+- 外部直接改変の検出・復旧
+- Narrative喪失の防止・復旧
+- 系終了後のファイル・DB・バックアップ削除
 - 一般的な更新復元と故障局所化
 
 ---
