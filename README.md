@@ -64,6 +64,16 @@ v0.1は、一人の信頼済みローカルユーザーが一つのローカルS
 - [延期したプロファイルと機構](docs/06-deferred-profiles.md)
 - [ケース一覧](cases/README.md)
 
+## 非規範Note
+
+現時点の未決事項、仮置き、延期事項、未実証事項は、正典へ混ぜずに[`note/`](note/README.md)で管理します。
+
+- [概念核に残る空白](note/01-core-open-questions.md)
+- [v0.1実装仕様に残る空白](note/02-v0.1-open-questions.md)
+- [延期・範囲外・未実証](note/03-deferred-and-unvalidated.md)
+
+Noteの内容は、明示的な決定と正典同期が行われるまでSCMの決定ではありません。
+
 ## 現在の状態
 
 - 文書版: `v0.1-draft`
