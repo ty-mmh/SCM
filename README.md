@@ -20,8 +20,21 @@ SCMの第一の成果物は、この問いへ動く構造で答える参照実�
 - **記憶は形成個体に属する。** 系は個体記憶を一つの系記憶へ融合しない。
 - **保存場所と可読性は共有されるが、経験主体は共有されない。** 後継個体は過去の記憶を他者の書物として読む。
 - **系は一つの正典Narrative系列を持つ。** 系のNarrative専用処理が生成・コミットし、各Revisionはその時点で固定される。
+- **系は最初のNarrativeコミットによって成立する。** それ以前はSCMのSystemではなく、ユーザーとの対話を積層するモデル個体として扱う。
 - **Narrative上の解釈・判断は系に帰属する。** Narrative生成を計算したモデルやプロセスは、実行来歴として別に記録する。
 - **ユーザーは系の外部共同構成者・ライフサイクル操作者である。** ユーザーの物語と系のNarrativeは互いに不可侵である。
+
+## 系成立前と最初のNarrative
+
+SCMの系は、最初の正典Narrative Revisionがコミットされた時点で成立します。
+
+それ以前の実行構成は、一つのモデル個体です。モデル個体はユーザーとの対話を積層し、個体に帰属する記録・記憶・表現状態を形成しえますが、まだ正典Narrative系列と系アイデンティティを持ちません。
+
+最初の正典Narrative Revisionは、その対話の積層を材料としてNarrative専用処理により生成・コミットされます。成立前の経験はモデル個体へ帰属したままであり、系成立によって遡及的に系自身の経験へ変換されません。
+
+系成立前のモデル個体の時間形成は、[`ty-mmh/dokoitsu`](https://github.com/ty-mmh/dokoitsu)を非規範の参考構造とします。
+
+詳細は[SCM系成立とBootstrap](docs/09-system-establishment-and-bootstrap.md)を参照してください。
 
 ## SCM v0.1生成AIモデル継承プロファイル
 
@@ -55,6 +68,7 @@ v0.1は、一人の信頼済みローカルユーザーが一つのローカルS
 
 - [SCM連続性存在論 — 七概念の定義](docs/07-continuity-ontology.md)
 - [個体帰属付き記憶の共有書庫](docs/08-attributed-memory-archive.md)
+- [SCM系成立とBootstrap](docs/09-system-establishment-and-bootstrap.md)
 
 ## 検証・調査文書
 
@@ -68,7 +82,7 @@ v0.1は、一人の信頼済みローカルユーザーが一つのローカルS
 
 未決事項、実装判断、延期、範囲外、未実証は、正典へ混ぜずに[`note/`](note/README.md)で管理します。
 
-日常的な正本は[SCM空白台帳](note/ledger.md)です。ユーザー判断が必要な事項を6件のカードへ圧縮し、状態遷移・API・DBはengineeringキュー、文書修正はmechanicalキューへ分けています。
+日常的な正本は[SCM空白台帳](note/ledger.md)です。U-01は正典へ同期済みで、現在のNEXTは`U-02 — 根底原則の正典集合と執行点`です。
 
 - [空白台帳](note/ledger.md)
 - [統合前Noteとスナップショットのアーカイブ](note/archive/README.md)
