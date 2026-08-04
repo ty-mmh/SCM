@@ -66,11 +66,13 @@ v0.1は、一人の信頼済みローカルユーザーが一つのローカルS
 
 ## 非規範Note
 
-現時点の未決事項、仮置き、延期事項、未実証事項は、正典へ混ぜずに[`note/`](note/README.md)で管理します。
+未決事項、実装判断、延期、範囲外、未実証は、正典へ混ぜずに[`note/`](note/README.md)で管理します。
 
-- [概念核に残る空白](note/01-core-open-questions.md)
-- [v0.1実装仕様に残る空白](note/02-v0.1-open-questions.md)
-- [延期・範囲外・未実証](note/03-deferred-and-unvalidated.md)
+日常的な正本は[SCM空白台帳](note/ledger.md)です。ユーザー判断が必要な事項を6件のカードへ圧縮し、状態遷移・API・DBはengineeringキュー、文書修正はmechanicalキューへ分けています。
+
+- [空白台帳](note/ledger.md)
+- [統合前Noteとスナップショットのアーカイブ](note/archive/README.md)
+- [2026-08-04対応表](note/archive/2026-08-04-crosswalk.md)
 
 Noteの内容は、明示的な決定と正典同期が行われるまでSCMの決定ではありません。
 
