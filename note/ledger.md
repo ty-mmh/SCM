@@ -19,8 +19,6 @@
 
 ## 1. 管理軸
 
-各項目は次の軸を持つ。
-
 ```text
 ID
 state: open | provisional | deferred | out_of_scope | unvalidated | resolved
@@ -28,9 +26,9 @@ authority: user | engineering | mechanical | joint-review
 priority: P0 | P1 | P2 | P3 | P4
 blocks: pr-merge | reference-implementation | future-profile | none
 depends_on
+source
+canonical_refs
 ```
-
-### 優先度
 
 | 優先度 | 意味 |
 |---|---|
@@ -39,8 +37,6 @@ depends_on
 | `P2` | 実装中に決められる |
 | `P3` | 明示的延期・将来プロファイル |
 | `P4` | 実装・ケース・CI・レビューによる検証待ち |
-
-### 判断主体
 
 | authority | 意味 |
 |---|---|
@@ -53,14 +49,14 @@ depends_on
 
 ## 2. 現在の判断順序
 
-> **NEXT: U-01 — 系の成立時点と最初のNarrative**
+> **NEXT: U-02 — 根底原則の正典集合と執行点**
 
 ユーザーが今回答する対象は`NEXT`だけでよい。解決後に次のカードへ進む。
 
 | 順序 | ID | 題名 | priority | blocks | state |
 |---:|---|---|---|---|---|
-| 1 | U-01 | 系の成立時点と最初のNarrative | P0 | reference-implementation | open |
-| 2 | U-02 | 根底原則の正典集合と執行点 | P1 | reference-implementation | open |
+| 1 | U-01 | 系の成立時点と最初のNarrative | P0 | none | resolved |
+| 2 | U-02 | 根底原則の正典集合と執行点 | P0 | reference-implementation | open |
 | 3 | U-03 | MemoryEntryの経験単位・非行為・個体交代閉包 | P1 | reference-implementation | open |
 | 4 | U-04 | 外部出力の経験帰属契約 | P1 | reference-implementation | open |
 | 5 | U-05 | 正典Narrative Revisionの最小意味契約 | P1 | reference-implementation | open |
@@ -73,34 +69,39 @@ depends_on
 ## U-01 — 系の成立時点と最初のNarrative
 
 ```text
-state: open
+state: resolved
 authority: user
 priority: P0
-blocks: reference-implementation
+blocks: none
 depends_on: none
+source: user_stated, 2026-08-04
+canonical_refs:
+  - docs/09-system-establishment-and-bootstrap.md
 ```
 
-### 既に決まっていること
+### 決定
 
-- 系アイデンティティは、変更不能な根底原則と一つの正典Narrative系列によって支えられる。
-- Narrativeは系の専用処理が生成・コミットし、コミット時に固定される。
-- 喪失後に同じ資料から再生成しても、同じNarrative Revisionにはならない。
+> **SCMの系は、最初の正典Narrative Revisionがコミットされた時点で成立する。**
 
-### 今回埋める空白
+> **最初の正典Narrative Revisionは、ユーザーとの対話の積層を材料として、Narrative専用処理によって生成・コミットされる。**
 
-> **SCMの系は、＿＿＿＿＿＿＿＿の時点で成立する。**
+> **最初の正典Narrative Revisionがまだ存在しない実行構成は、SCMの系またはSystemではなく、系成立前のモデル個体として扱う。**
 
-> **最初の正典Narrative Revisionは、＿＿＿＿＿＿＿＿を材料として、＿＿＿＿＿＿＿＿生成・コミットされる。**
+### 導出される境界
 
-> **最初の正典Narrative Revisionがまだ存在しないSystemは、＿＿＿＿＿＿＿＿として扱う。**
+- 最初のNarrativeコミットは、既存の系への追記ではなく系の創設事象である。
+- 成立前の記録・記憶はモデル個体へ帰属したままであり、系成立によって遡及的に系自身の経験へ変換されない。
+- 最初のRevisionコミットとともに`system_id`と系アイデンティティが成立し、成立前のモデル個体は最初の接続`Instance`となる。
+- 系成立前のモデル個体の時間形成は、`ty-mmh/dokoitsu`を非規範の参考構造とする。
+- dokoitsuの記憶分類、記憶代謝、self-talk、persona更新をSCMへ自動導入しない。
 
-### 今回は決めないこと
+### engineeringへ移した事項
 
-- 最初のRevisionを`N0`と呼ぶか`N1`と呼ぶか。
-- 初回生成の再試行回数。
-- DBトランザクション。
-
-これらは回答後に機械・実装事項として処理する。
+- 成立前資料の保存領域と仮識別子。
+- 対話積層が最初のNarrative生成へ至る成熟条件。
+- 成立前資料の入力閉包。
+- 最初のRevisionコミット、`system_id`発行、最初のInstance登録の原子性。
+- 最初のRevision生成失敗時の扱い。
 
 ---
 
@@ -109,7 +110,7 @@ depends_on: none
 ```text
 state: open
 authority: user
-priority: P1
+priority: P0
 blocks: reference-implementation
 depends_on: U-01
 ```
@@ -164,12 +165,6 @@ depends_on: U-02
 
 > **結果を知らないまま形成個体が消えたMemoryEntryは、＿＿＿＿＿＿＿＿という終端を持つ。**
 
-### 決定後にengineeringへ渡すもの
-
-- EventとMemoryEntryの因果参照。
-- `pending / closed / unresolved / abandoned`等の状態集合。
-- MemoryEntryをEventから投影するか、可変レコードとして持つか。
-
 ---
 
 ## U-04 — 外部出力の経験帰属契約
@@ -182,14 +177,6 @@ blocks: reference-implementation
 depends_on: U-02, U-03
 ```
 
-### 既に決まっていること
-
-- RecallItemが持つ形成個体の帰属と、現在個体が外部へ立てる経験主張は別である。
-- 他個体のMemoryEntryを、現在個体自身の直接経験として語らない。
-- C2には出力側の執行点が必要である。
-
-### 今回埋める空白
-
 > **現在個体が外部へ出力する経験主張は、＿＿＿＿＿＿＿＿という型または境界を通る。**
 
 > **経験帰属区分は、＿＿＿＿＿＿＿＿である。**
@@ -197,12 +184,6 @@ depends_on: U-02, U-03
 > **他個体に帰属するMemoryEntryを参照した場合、現在個体は＿＿＿＿＿＿＿＿とは主張できない。**
 
 > **「私たち」または系としての表現は、＿＿＿＿＿＿＿＿の場合に許される。**
-
-### 決定後にengineeringへ渡すもの
-
-- DTO／レンダラー型の名称とフィールド。
-- 型検証失敗時の拒否・修正経路。
-- C2の具体的な判定点。
 
 ---
 
@@ -216,15 +197,6 @@ blocks: reference-implementation
 depends_on: U-01, U-02, U-03
 ```
 
-### 既に決まっていること
-
-- Narrativeは系へ帰属し、一つの系列を持つ。
-- 系の専用処理が生成・コミットする。
-- 各Revisionは固定され、Event・MemoryEntryを書き換えない。
-- v0.1ではNarrativeをRecall・行為へ使わない。
-
-### 今回埋める空白
-
 > **正典Narrative Revisionは、最低限＿＿＿＿＿＿＿＿を含む。**
 
 > **Narrative内の事実・解釈・未確定事項は、＿＿＿＿＿＿＿＿への参照を持つ。**
@@ -232,13 +204,6 @@ depends_on: U-01, U-02, U-03
 > **Narrativeが矛盾する資料を扱う場合、＿＿＿＿＿＿＿＿。**
 
 > **Narrativeは自由文のみ／構造化部＋自由文のうち、＿＿＿＿＿＿＿＿とする。**
-
-### 決定後にengineeringへ渡すもの
-
-- 入力集合の選択規則。
-- Narrative Processの計算基体。
-- コミット原子性と書き込み許可リスト。
-- 保持・アーカイブ・圧縮契約。
 
 ---
 
@@ -252,14 +217,6 @@ blocks: reference-implementation
 depends_on: U-02, U-05
 ```
 
-### 既に決まっていること
-
-- 可変原則はNarrativeの時制から現れる美学・在り方である。
-- 変更は系としての決定に帰属する。
-- 改訂アルゴリズム自体はv0.1で延期されている。
-
-### 今回埋める空白
-
 > **v0.1では、可変原則を保存・継承だけに用いる／現在個体の行為へ用いる、のうち＿＿＿＿＿＿＿＿とする。**
 
 > **可変原則が根底原則と衝突する場合、＿＿＿＿＿＿＿＿。**
@@ -269,8 +226,6 @@ depends_on: U-02, U-05
 ---
 
 # B. Engineering決定キュー
-
-以下はユーザー判断カードの意味を変えず、参照実装へ落とす作業である。実装中に存在論的な選択が発生した場合、新しい`U-*`へ昇格する。
 
 ## E-01 — Event LedgerとMemoryEntry永続化
 
@@ -282,16 +237,13 @@ blocks: reference-implementation
 depends_on: U-03
 ```
 
-対象:
-
 - Eventの正典順序、sequence、`occurred_at / recorded_at`、遅延到着、冪等性。
 - `event_cursor`の意味。
 - MemoryEntry状態を直接更新するか、Eventから投影するか。
-- `invalidated`の正規経路。
-- `contradiction_refs`の登録と履歴。
+- `invalidated`の正規経路と`contradiction_refs`の履歴。
 - reservedフィールドをv0.1物理スキーマへ含めるか。
 
-## E-02 — Narrative Runtime
+## E-02 — Narrative RuntimeとBootstrap
 
 ```text
 state: open
@@ -301,8 +253,10 @@ blocks: reference-implementation
 depends_on: U-01, U-05, U-06, E-01
 ```
 
-対象:
-
+- 成立前のモデル個体の対話・記録・局所記憶を保存する領域。
+- 最初のNarrative生成を発火させる対話積層の成熟条件。
+- 最初のNarrativeへ渡す入力集合。
+- 最初のRevisionコミット、`system_id`発行、最初のInstance登録の原子性。
 - 日次境界、無Event日、休眠中、再試行、遅延実行。
 - Narrative入力集合の閉包と剪定。
 - 計算実行契約、入力版・プロンプト版・実行来歴。
@@ -320,8 +274,6 @@ blocks: reference-implementation
 depends_on: U-03, U-04, E-01
 ```
 
-対象:
-
 - Task一致、Handoff列挙、明示ID、文字列・埋め込み検索の最小組合せ。
 - `pending / invalidated / contradiction`の返却規則。
 - 件数、時間範囲、順序、検索理由。
@@ -337,14 +289,11 @@ blocks: reference-implementation
 depends_on: U-03, E-01, E-03
 ```
 
-対象:
-
 - Task状態機械、作成・変更・完了主体、権限・制約、成果物版。
 - SharedStateをEvent Projectionとするか、versioned viewとするか。
 - Handoffへ含める資料、サイズ上限、縮約。
 - 鮮度判定に使うTask／Event／SharedState／権限version。
-- `received / evaluated / accepted / bound / activated`の順序。
-- 複数候補、拒否後再割当、束縛後停止などの端ケース。
+- `received / evaluated / accepted / bound / activated`の順序と端ケース。
 
 ## E-05 — System／Instance Lifecycle・分岐・連続性切断
 
@@ -356,14 +305,13 @@ blocks: reference-implementation
 depends_on: U-01, U-02, E-02, E-04
 ```
 
-対象:
-
+- 成立前のモデル個体からSystemへの状態遷移。
 - `active / dormant / ended`と`registered / active / inactive / stopped`。
 - Taskなしモデル切替のC1 variant。
 - 系分岐時のEvent・Memory・Narrative・Taskの複製／参照。
 - Narrative喪失が認知された場合の状態・Event・別系生成。
 
-分岐や連続性切断に存在論的判断が必要になった場合は、ユーザー判断カードへ昇格する。
+存在論的判断が必要になった場合は、新しい`U-*`へ昇格する。
 
 ---
 
@@ -379,7 +327,7 @@ blocks: pr-merge
 ```
 
 - 保存形式をMarkdownまたはYAMLから選ぶ。
-- 最初の対象は、`N_active = 1`、Narrativeの系帰属、宛先未確定Handoff、MemoryEntry自動閉包、Coordinator、S1、ケース上限、証拠ラベルとする。
+- 初期対象は、U-01、`N_active = 1`、Narrativeの系帰属、宛先未確定Handoff、MemoryEntry自動閉包、Coordinator、S1、ケース上限、証拠ラベルとする。
 - 由来不明は推測せず`unknown`とする。
 - `user_stated / user_confirmed / assistant_proposal / claude_proposal / external_evidence`を区別する。
 - 各行の最終確認はユーザーが行う。
@@ -457,9 +405,9 @@ blocks: pr-merge
 ## 3. 解決手順
 
 1. `NEXT`のユーザー判断カードだけを対話で埋める。
-2. 回答をそのカードへ記録し、`state: provisional`へ移す。
+2. 回答をカードへ記録し、正典補助文書へ同期する。
 3. 影響するengineering項目を更新する。
-4. 正典、参照プロファイル、不変条件、ケースへ同期する。
+4. 正典、参照プロファイル、不変条件、ケースへ必要な範囲で同期する。
 5. DesignClaimへ出所を記録する。
 6. 検算後に`resolved`へ移し、次のカードを`NEXT`にする。
 
