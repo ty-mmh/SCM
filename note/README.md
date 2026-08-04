@@ -2,8 +2,9 @@
 
 - 状態: non-normative workbench
 - 役割: 未決事項、実装判断、延期、範囲外、未実証を、正典と混ぜずに管理する
-- 正典: `docs/01`、`docs/02`、`docs/03`、`docs/07`、`docs/08`
+- 正典: `docs/01`、`docs/02`、`docs/03`、`docs/07`、`docs/08`、`docs/09`
 - 空白の正本: [`ledger.md`](ledger.md)
+- 現在のNEXT: `U-02 — 根底原則の正典集合と執行点`
 
 ## 1. 権威境界
 
@@ -27,6 +28,8 @@ Noteに書かれている選択肢、仮説、実装案は、次を満たすま�
 - 記号・表記・証拠表示の修正は`M-*`へ置く。
 - 来歴監査は`G-*`へ置く。
 - 延期・範囲外は`D-*`、未実証は`V-*`へ置く。
+
+U-01は、[SCM系成立とBootstrap](../docs/09-system-establishment-and-bootstrap.md)へ同期され、`resolved`となった。現在はU-02を扱う。
 
 旧Noteの詳細と、2026-08-04時点の全量スナップショットの対応は[`archive/`](archive/README.md)で追跡する。
 
